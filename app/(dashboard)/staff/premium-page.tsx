@@ -76,8 +76,6 @@ export default function PremiumStaffDashboard() {
   const [filterShift, setFilterShift] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const supabase = createClient();
-
   useEffect(() => {
     loadUserData();
     loadTasks();
@@ -85,6 +83,7 @@ export default function PremiumStaffDashboard() {
 
   const loadUserData = async () => {
     try {
+      const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (authUser) {
         const { data: userData } = await supabase
@@ -102,6 +101,7 @@ export default function PremiumStaffDashboard() {
 
   const loadTasks = async () => {
     try {
+      const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) return;
 
@@ -132,6 +132,7 @@ export default function PremiumStaffDashboard() {
     if (!file) return;
 
     try {
+      const supabase = createClient();
       setUploading(true);
       
       // Upload to Supabase Storage

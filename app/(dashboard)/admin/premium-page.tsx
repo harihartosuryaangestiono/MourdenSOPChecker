@@ -115,8 +115,6 @@ export default function PremiumAdminDashboard() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const supabase = createClient();
-
   useEffect(() => {
     loadUserData();
     loadData();
@@ -124,6 +122,7 @@ export default function PremiumAdminDashboard() {
 
   const loadUserData = async () => {
     try {
+      const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (authUser) {
         const { data: userData } = await supabase
@@ -158,6 +157,7 @@ export default function PremiumAdminDashboard() {
   };
 
   const loadTasks = async () => {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from("daily_task_instances")
       .select(`
@@ -177,6 +177,7 @@ export default function PremiumAdminDashboard() {
   };
 
   const loadStaffPerformance = async () => {
+    const supabase = createClient();
     const { data, error } = await supabase
       .from("users")
       .select(`
@@ -240,6 +241,7 @@ export default function PremiumAdminDashboard() {
 
   const handleUpdateAdminNote = async (taskId: string, note: string) => {
     try {
+      const supabase = createClient();
       setUpdating(true);
       
       const { error } = await supabase

@@ -90,10 +90,9 @@ export default function StaffDashboard() {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [checklist, setChecklist] = useState<boolean[]>([]);
   const [notes, setNotes] = useState("");
-  
-  const supabase = createClient();
 
   useEffect(() => {
+    const supabase = createClient();
     fetchUserAndTasks();
 
     const channel = supabase
@@ -118,6 +117,7 @@ export default function StaffDashboard() {
   const fetchUserAndTasks = async (showLoader = true) => {
     if (showLoader) setLoading(true);
     try {
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUser(user);
@@ -173,6 +173,7 @@ export default function StaffDashboard() {
   const handleCompleteTask = async (taskId: string, file?: File) => {
     setUploading(true);
     try {
+      const supabase = createClient();
       let publicUrl = null;
       let photoPath = null;
       

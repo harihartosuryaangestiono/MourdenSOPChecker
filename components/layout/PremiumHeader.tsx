@@ -56,10 +56,10 @@ export function PremiumHeader({
   isMobileMenuOpen = false
 }: PremiumHeaderProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const supabase = createClient();
 
   const handleLogout = async () => {
     try {
+      const supabase = createClient();
       setIsLoggingOut(true);
       await supabase.auth.signOut();
       window.location.href = "/login";

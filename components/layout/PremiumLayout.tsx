@@ -34,7 +34,6 @@ export function PremiumLayout({
   const [user, setUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     if (requireAuth) {
@@ -46,6 +45,7 @@ export function PremiumLayout({
 
   const loadUserData = async () => {
     try {
+      const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (authUser) {
         const { data: userData } = await supabase

@@ -93,7 +93,6 @@ export default function AdminDashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [adminNote, setAdminNote] = useState("");
   const [updating, setUpdating] = useState(false);
-  const supabase = createClient();
 
   useEffect(() => {
     fetchDashboardData();
@@ -101,6 +100,7 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      const supabase = createClient();
       setLoading(true);
       let query = supabase
         .from("daily_task_instances")
@@ -158,6 +158,7 @@ export default function AdminDashboard() {
   const handleUpdateAdminNote = async (taskId: string, note: string) => {
     setUpdating(true);
     try {
+      const supabase = createClient();
       const { error } = await supabase
         .from("task_submissions")
         .update({

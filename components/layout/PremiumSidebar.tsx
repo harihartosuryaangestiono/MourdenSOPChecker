@@ -50,10 +50,10 @@ export function PremiumSidebar({ user, isOpen = true, onToggle }: PremiumSidebar
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
-  const supabase = createClient();
 
   const handleLogout = async () => {
     try {
+      const supabase = createClient();
       setIsLoggingOut(true);
       await supabase.auth.signOut();
       window.location.href = "/login";

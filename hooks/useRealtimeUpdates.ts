@@ -5,10 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 import { useAppStore } from "@/stores/useAppStore";
 
 export function useRealtimeUpdates() {
-  const supabase = createClient();
   const { refreshTasks, addActivity } = useAppStore();
 
   useEffect(() => {
+    const supabase = createClient();
     const channel = supabase
       .channel("mourdenops-realtime")
       .on(
@@ -39,5 +39,5 @@ export function useRealtimeUpdates() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, refreshTasks, addActivity]);
+  }, [refreshTasks, addActivity]);
 }

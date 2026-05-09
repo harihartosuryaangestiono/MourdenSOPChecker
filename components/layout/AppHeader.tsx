@@ -28,10 +28,9 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ user, title, subtitle }: AppHeaderProps) {
-  const supabase = createClient();
-
   const handleLogout = async () => {
     try {
+      const supabase = createClient();
       await supabase.auth.signOut();
       toast.success("Berhasil logout");
       window.location.href = "/login";
