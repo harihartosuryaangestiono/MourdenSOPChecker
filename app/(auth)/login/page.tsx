@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { login, getDashboardRoute } from "@/lib/auth";
 import { toast } from "sonner";
-import { Loader2, Coffee, CheckCircle, Shield, Eye, EyeOff } from "lucide-react";
+import { Loader2, CheckCircle, Shield, Eye, EyeOff } from "lucide-react";
 import { APP_NAME, CAFE_NAME } from "@/lib/constants";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const features = [
   { text: "Mandatory photo proof per task" },
@@ -58,8 +59,8 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col h-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/40">
-              <Coffee className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg">
+              <Image src="/logo.png" alt="Mourden" width={40} height={40} className="w-full h-full object-contain" />
             </div>
             <span className="text-white font-bold text-lg tracking-tight">{APP_NAME}</span>
           </div>
@@ -113,8 +114,8 @@ export default function LoginPage() {
         >
           {/* Mobile logo */}
           <div className="flex items-center gap-2.5 mb-10 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-              <Coffee className="w-4.5 h-4.5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md">
+              <Image src="/logo.png" alt="Mourden" width={36} height={36} className="w-full h-full object-contain" />
             </div>
             <span className="font-bold text-foreground">{APP_NAME}</span>
           </div>

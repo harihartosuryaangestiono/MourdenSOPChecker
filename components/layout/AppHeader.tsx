@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -64,7 +65,7 @@ export function AppHeader({ user, title, subtitle }: AppHeaderProps) {
         <div className="flex justify-between items-center h-16">
           {/* Left Section - Title */}
           <div className="flex items-center">
-            <Coffee className="w-8 h-8 text-amber-600 mr-3" />
+            <Image src="/logo.png" alt="Mourden" width={32} height={32} className="w-8 h-8 object-contain mr-3" />
             <div>
               <h1 className="text-xl font-bold text-gray-900">
                 {title || "CafeOps"}

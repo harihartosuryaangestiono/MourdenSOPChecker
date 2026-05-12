@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Coffee, CheckSquare, BarChart3, Users, Settings, LogOut, X,
+  CheckSquare, BarChart3, Users, Settings, LogOut, X,
   TrendingUp, FileText, Bell, ChevronLeft, ChevronRight,
   History, LayoutDashboard, ClipboardList, UserCog, Sparkles
 } from "lucide-react";
@@ -95,8 +96,8 @@ export function PremiumSidebar({ user, isOpen = true, onToggle }: PremiumSidebar
       >
         <div className="flex items-center justify-between h-14 px-3 border-b border-border/40 flex-shrink-0">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30 flex-shrink-0">
-              <Coffee className="w-4 h-4 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+              <Image src="/logo.png" alt="Mourden" width={32} height={32} className="w-full h-full object-contain" />
             </div>
             <AnimatePresence>
               {!isCollapsed && (

@@ -32,6 +32,10 @@ export const metadata: Metadata = {
   title: "MourdenOps - Café Operations & SOP Monitoring",
   description: "Every Task. Every Proof. Every Day. Internal café operations tool for digital SOP monitoring with mandatory photo proof per task.",
   keywords: ["café operations", "SOP monitoring", "task management", "Mourden"],
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
