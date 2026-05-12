@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ZoomIn, ZoomOut, Download, Clock, User } from "lucide-react";
+import { X, ZoomIn, ZoomOut, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface ImageViewerModalProps {
   isOpen: boolean;
@@ -17,70 +17,89 @@ interface ImageViewerModalProps {
 export function ImageViewerModal({ isOpen, onClose, imageUrl, title, timestamp, uploaderName }: ImageViewerModalProps) {
   const [scale, setScale] = useState(1);
 
-  if (!isOpen) return null;
+  const handleClose = () => {
+    setScale(1);
+    onClose();
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+          onClick={handleClose}
         >
-          {/* Header */}
-          <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-10">
-            <div className="flex flex-col text-white">
-              {title && <h3 className="font-bold text-lg">{title}</h3>}
-              <div className="flex items-center gap-4 text-xs text-white/70">
-                {uploaderName && (
-                  <span className="flex items-center gap-1"><User className="w-3 h-3" /> {uploaderName}</span>
-                )}
-                {timestamp && (
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {timestamp}</span>
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.85, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl w-full"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col gap-0.5">
+                {title && <p className="text-sm font-semibold text-white">{title}</p>}
+                {(uploaderName || timestamp) && (
+                  <p className="text-xs text-white/50">
+                    {uploaderName}{uploaderName && timestamp ? " · " : ""}{timestamp}
+                  </p>
                 )}
               </div>
+              <div className="flex items-center gap-2 ml-auto">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
+                  className="h-8 w-8 text-white hover:bg-white/10"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setScale((s) => Math.min(3, s + 0.25))}
+                  className="h-8 w-8 text-white hover:bg-white/10"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+                <a
+                  href={imageUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-white hover:bg-white/10"
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClose}
+                  className="h-8 w-8 text-white hover:bg-white/10"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setScale(s => Math.min(s + 0.5, 3))}>
-                <ZoomIn className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setScale(s => Math.max(s - 0.5, 0.5))}>
-                <ZoomOut className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => {
-                const a = document.createElement('a');
-                a.href = imageUrl;
-                a.download = 'proof-image.jpg';
-                a.click();
-              }}>
-                <Download className="w-5 h-5" />
-              </Button>
-              <div className="w-px h-6 bg-white/20 mx-2" />
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-red-400" onClick={onClose}>
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Image Container */}
-          <div 
-            className="relative w-full h-full flex items-center justify-center overflow-hidden p-12"
-            onClick={onClose}
-          >
-            <motion.div
-              animate={{ scale }}
-              className="relative max-w-5xl w-full max-h-[80vh] flex items-center justify-center"
-              onClick={e => e.stopPropagation()}
-            >
-              <img 
-                src={imageUrl} 
-                alt={title || "Proof"} 
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl shadow-black" 
+            <div className="overflow-hidden rounded-2xl bg-black/40 border border-white/10">
+              <img
+                src={imageUrl}
+                alt={title ?? "Photo proof"}
+                className="w-full object-contain max-h-[80vh] transition-transform duration-200"
+                style={{ transform: "scale(" + scale + ")" }}
               />
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

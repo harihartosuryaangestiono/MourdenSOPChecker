@@ -14,9 +14,9 @@ export default async function Home() {
     .from("users")
     .select("role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  const role = userData?.role || "staff";
+  const role = userData?.role || user.user_metadata?.role || "staff";
   const redirectTo = getDashboardRoute(role);
   
   redirect(redirectTo);

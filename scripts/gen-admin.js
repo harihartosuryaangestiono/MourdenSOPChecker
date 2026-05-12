@@ -1,4 +1,16 @@
-"use client";
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+
+function w(rel, code) {
+  const abs = path.join(root, rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, code, 'utf8');
+  console.log('✓', rel);
+}
+
+// ─── Admin Dashboard ───────────────────────────────────────────────────────────
+w('app/(dashboard)/admin/page.tsx', `"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -11,9 +23,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, Clock, AlertCircle, Camera, Eye, Users, Activity,
   Search, X, MessageSquare, ArrowUpRight, CheckSquare, CircleDashed,
-  ListTodo, AlertOctagon, RefreshCw, Loader2, ChevronRight, Star, Zap
+  ListTodo, AlertOctagon, RefreshCw, Loader2, ChevronRight, Star
 } from "lucide-react";
-import { generateDailyTasks } from "@/services/task.service";
 import { toast } from "sonner";
 import Image from "next/image";
 import { cn, formatTime, formatDateTime } from "@/lib/utils";
@@ -51,21 +62,6 @@ export default function AdminDashboard() {
   const [processing, setProcessing] = useState(false);
   const [search, setSearch] = useState("");
   const [shiftFilter, setShiftFilter] = useState<"all" | "opening" | "closing" | "daily">("all");
-  const [generating, setGenerating] = useState(false);
-
-  const handleGenerateTasks = async () => {
-    setGenerating(true);
-    try {
-      const result = await generateDailyTasks();
-      if (result.created === 0) {
-        toast.info("Tasks already generated for today. (" + result.skipped + " existing)");
-      } else {
-        toast.success(result.created + " tasks generated!");
-        load(false);
-      }
-    } catch { toast.error("Failed to generate tasks"); }
-    finally { setGenerating(false); }
-  };
 
   const load = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -75,7 +71,7 @@ export default function AdminDashboard() {
 
       const { data: tasksData } = await sb
         .from("daily_task_instances")
-        .select(`
+        .select(\`
           id, date, shift, status, deadline_time,
           sop_task:sop_tasks(
             title, description, photo_required,
@@ -83,7 +79,7 @@ export default function AdminDashboard() {
           ),
           assigned_user:users!assigned_to(id, name, avatar_url, role),
           submission:task_submissions(id, photo_url, submitted_at, notes, admin_note)
-        `)
+        \`)
         .eq("date", today)
         .order("deadline_time", { ascending: true });
 
@@ -233,16 +229,6 @@ export default function AdminDashboard() {
               </div>
               <Button variant="ghost" size="icon" onClick={() => load(false)} className="h-9 w-9 rounded-xl">
                 <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateTasks}
-                disabled={generating}
-                className="rounded-xl h-9 gap-1.5 text-xs"
-              >
-                {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-                Generate Today
               </Button>
             </div>
 
@@ -497,3 +483,6 @@ export default function AdminDashboard() {
     </PremiumLayout>
   );
 }
+`);
+
+console.log('Done! Admin dashboard generated.');

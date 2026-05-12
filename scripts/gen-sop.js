@@ -1,4 +1,15 @@
-"use client";
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+function w(rel, code) {
+  const abs = path.join(root, rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, code, 'utf8');
+  console.log('✓', rel);
+}
+
+// ─── Admin SOP Page ─────────────────────────────────────────────────────────────
+w('app/(dashboard)/admin/sop/page.tsx', `"use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +37,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatTime, cn } from "@/lib/utils";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 interface TaskForm {
   title: string;
@@ -47,7 +57,7 @@ interface CSVRow {
   task_description: string;
 }
 
-const SHIFTS = ["opening", "middle", "closing", "daily"] as const;
+const SHIFTS = ["opening", "closing", "daily"] as const;
 const PRIORITIES = ["low", "normal", "high", "critical"] as const;
 
 const defaultTaskForm = (): TaskForm => ({
@@ -122,15 +132,11 @@ export default function SOPPage() {
     if (!form.title.trim()) { toast.error("Title is required"); return; }
     setSaving(true);
     try {
-      const cleanForm = {
-        ...form,
-        category_id: form.category_id || null,
-      };
       if (editTarget) {
-        await updateSOPTemplate(editTarget.id, cleanForm as any);
+        await updateSOPTemplate(editTarget.id, form as any);
         toast.success("SOP updated!");
       } else {
-        const tpl = await createSOPTemplate(cleanForm as any);
+        const tpl = await createSOPTemplate(form as any);
         const validTasks = taskForms.filter((t) => t.title.trim());
         for (let i = 0; i < validTasks.length; i++) {
           await createSOPTask({
@@ -139,6 +145,7 @@ export default function SOPPage() {
             description: validTasks[i].description,
             instruction: validTasks[i].instruction,
             photo_required: validTasks[i].photo_required,
+            deadline_time: validTasks[i].deadline_time || form.deadline_time,
             order_index: i,
           } as any);
         }
@@ -191,7 +198,7 @@ export default function SOPPage() {
   };
 
   const parseCSV = (text: string): CSVRow[] => {
-    const lines = text.split("\n").filter((l) => l.trim());
+    const lines = text.split("\\n").filter((l) => l.trim());
     if (lines.length < 2) return [];
     const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/ /g, "_"));
     return lines.slice(1).map((line) => {
@@ -202,44 +209,15 @@ export default function SOPPage() {
     });
   };
 
-  const parseXLSX = (buffer: ArrayBuffer): CSVRow[] => {
-    const wb = XLSX.read(buffer, { type: "array" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const raw: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-    if (raw.length < 2) return [];
-    const headers = (raw[0] as string[]).map((h) =>
-      String(h).trim().toLowerCase().replace(/ /g, "_")
-    );
-    return raw.slice(1).map((rowArr) => {
-      const row: any = {};
-      headers.forEach((h, i) => { row[h] = rowArr[i] != null ? String(rowArr[i]).trim() : ""; });
-      return row as CSVRow;
-    }).filter((r) => Object.values(r).some((v) => v !== ""));
-  };
-
   const handleCSVFile = (file: File) => {
-    const isXLSX = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
-    if (isXLSX) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const buffer = e.target?.result as ArrayBuffer;
-        const rows = parseXLSX(buffer);
-        if (rows.length === 0) { toast.error("Excel file is empty or invalid"); return; }
-        setCSVRows(rows);
-        toast.success(rows.length + " rows loaded from Excel");
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const rows = parseCSV(text);
-        if (rows.length === 0) { toast.error("CSV is empty or invalid"); return; }
-        setCSVRows(rows);
-        toast.success(rows.length + " rows loaded from CSV");
-      };
-      reader.readAsText(file);
-    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const rows = parseCSV(text);
+      if (rows.length === 0) { toast.error("CSV is empty or invalid"); return; }
+      setCSVRows(rows);
+    };
+    reader.readAsText(file);
   };
 
   const handleCSVImport = async () => {
@@ -288,7 +266,7 @@ export default function SOPPage() {
       "title,description,shift,category,deadline,priority,task_title,task_description",
       "Opening Procedures,Morning setup checklist,opening,Cleaning,08:00,high,Wipe counters,Clean all counter surfaces thoroughly",
       "Opening Procedures,Morning setup checklist,opening,Cleaning,08:00,high,Brew coffee,Prepare opening batch of coffee",
-    ].join("\n");
+    ].join("\\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -316,7 +294,7 @@ export default function SOPPage() {
             />
           </div>
           <div className="flex gap-1.5 flex-wrap">
-            {(["all", "opening", "middle", "closing", "daily"] as const).map((s) => (
+            {(["all", "opening", "closing", "daily"] as const).map((s) => (
               <Button
                 key={s}
                 size="sm"
@@ -675,12 +653,12 @@ export default function SOPPage() {
                     <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <Upload className="w-6 h-6 text-primary" />
                     </div>
-                    <p className="font-semibold text-foreground mb-1">Drop CSV or Excel file here</p>
-                    <p className="text-xs text-muted-foreground">Supports .csv, .xlsx, .xls · Max 5MB</p>
+                    <p className="font-semibold text-foreground mb-1">Drop CSV file here</p>
+                    <p className="text-xs text-muted-foreground">or click to browse. Max 5MB.</p>
                     <input
                       ref={csvRef}
                       type="file"
-                      accept=".csv,.xlsx,.xls"
+                      accept=".csv"
                       className="hidden"
                       onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCSVFile(f); }}
                     />
@@ -775,3 +753,6 @@ export default function SOPPage() {
     </PremiumLayout>
   );
 }
+`);
+
+console.log('Done! SOP page generated.');

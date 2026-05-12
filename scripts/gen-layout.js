@@ -1,4 +1,16 @@
-"use client";
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+
+function w(rel, code) {
+  const abs = path.join(root, rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, code, 'utf8');
+  console.log('✓', rel);
+}
+
+// ─── PremiumSidebar ────────────────────────────────────────────────────────────
+w('components/layout/PremiumSidebar.tsx', `"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -245,3 +257,277 @@ export function PremiumSidebar({ user, isOpen = true, onToggle }: PremiumSidebar
     </>
   );
 }
+`);
+
+// ─── PremiumHeader ─────────────────────────────────────────────────────────────
+w('components/layout/PremiumHeader.tsx', `"use client";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./ThemeToggle";
+import { Bell, Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface PremiumHeaderProps {
+  user?: { id: string; name: string; email: string; role: string; avatar_url?: string } | null;
+  title?: string;
+  subtitle?: string;
+  showMobileMenu?: boolean;
+  onMobileMenuToggle?: () => void;
+  isMobileMenuOpen?: boolean;
+}
+
+export function PremiumHeader({
+  user,
+  title,
+  subtitle,
+  showMobileMenu = true,
+  onMobileMenuToggle,
+}: PremiumHeaderProps) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const initials = (name: string) =>
+    name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  return (
+    <header
+      className={cn(
+        "sticky top-0 z-30 h-14 flex items-center justify-between px-4 lg:px-6 transition-all duration-200",
+        scrolled
+          ? "bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-sm"
+          : "bg-background border-b border-border/40"
+      )}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        {showMobileMenu && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMobileMenuToggle}
+            className="lg:hidden h-8 w-8 -ml-1"
+          >
+            <Menu className="w-4 h-4" />
+          </Button>
+        )}
+        <div className="min-w-0">
+          {title && (
+            <h1 className="text-sm font-semibold text-foreground truncate leading-tight">{title}</h1>
+          )}
+          {subtitle && (
+            <p className="text-xs text-muted-foreground truncate leading-tight">{subtitle}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <ThemeToggle />
+        <Button variant="ghost" size="icon" className="relative h-8 w-8">
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-destructive rounded-full ring-1 ring-background" />
+        </Button>
+        {user && (
+          <div className="flex items-center gap-2 ml-1 pl-2 border-l border-border/50">
+            <div className="w-7 h-7 rounded-full bg-primary/10 ring-1 ring-primary/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-[10px] font-bold text-primary">{initials(user.name)}</span>
+            </div>
+            <div className="hidden sm:block min-w-0">
+              <p className="text-xs font-semibold text-foreground leading-none">{user.name}</p>
+              <p className="text-[10px] text-muted-foreground capitalize leading-tight">{user.role}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+`);
+
+// ─── MobileNav ─────────────────────────────────────────────────────────────────
+w('components/layout/MobileNav.tsx', `"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { Home, ClipboardList, History, User, BarChart3, Users, LayoutDashboard } from "lucide-react";
+import { motion } from "framer-motion";
+
+const staffNav = [
+  { href: "/staff/tasks", label: "Tasks", icon: ClipboardList },
+  { href: "/staff/history", label: "History", icon: History },
+  { href: "/staff", label: "Home", icon: Home },
+  { href: "/staff/profile", label: "Profile", icon: User },
+];
+
+const adminNav = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/monitor", label: "Monitor", icon: BarChart3 },
+  { href: "/admin/sop", label: "SOP", icon: ClipboardList },
+  { href: "/admin/staff", label: "Staff", icon: Users },
+];
+
+const ownerNav = [
+  { href: "/owner", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/monitor", label: "Monitor", icon: BarChart3 },
+  { href: "/admin/sop", label: "SOP", icon: ClipboardList },
+  { href: "/admin/staff", label: "Staff", icon: Users },
+];
+
+export function MobileNav() {
+  const pathname = usePathname();
+  const { isStaff, isAdmin, isOwner } = useAuth();
+  const nav = isStaff ? staffNav : isOwner ? ownerNav : isAdmin ? adminNav : staffNav;
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+      <div className="bg-card/95 backdrop-blur-xl border-t border-border/50 safe-area-inset-bottom">
+        <div className="flex items-center justify-around h-16 px-2">
+          {nav.map((item) => {
+            const active = pathname === item.href || (item.href.length > 1 && pathname.startsWith(item.href + "/"));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="relative flex flex-col items-center justify-center flex-1 h-full gap-1 min-w-0"
+              >
+                <motion.div whileTap={{ scale: 0.82 }} className="flex flex-col items-center gap-1">
+                  {active && (
+                    <motion.div
+                      layoutId="mobile-pill"
+                      className="absolute top-1 w-10 h-10 rounded-full bg-primary/10"
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <item.icon
+                    className={cn(
+                      "w-5 h-5 relative z-10 transition-colors",
+                      active ? "text-primary" : "text-muted-foreground"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium relative z-10 transition-colors",
+                      active ? "text-primary" : "text-muted-foreground"
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </motion.div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </nav>
+  );
+}
+`);
+
+// ─── PremiumLayout ─────────────────────────────────────────────────────────────
+w('components/layout/PremiumLayout.tsx', `"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { PremiumSidebar } from "./PremiumSidebar";
+import { PremiumHeader } from "./PremiumHeader";
+import { MobileNav } from "./MobileNav";
+import { cn } from "@/lib/utils";
+import { PremiumLoading } from "@/components/common/PremiumLoading";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar_url?: string;
+}
+
+interface PremiumLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  subtitle?: string;
+  showSidebar?: boolean;
+  requireAuth?: boolean;
+}
+
+export function PremiumLayout({
+  children,
+  title,
+  subtitle,
+  showSidebar = true,
+  requireAuth = true,
+}: PremiumLayoutProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!requireAuth) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const sb = createClient();
+        const { data: { user: au } } = await sb.auth.getUser();
+        if (!au) { window.location.href = "/login"; return; }
+        const { data } = await sb.from("users").select("*").eq("id", au.id).single();
+        setUser(data as User);
+      } catch {
+        window.location.href = "/login";
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [requireAuth]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <PremiumLoading />
+      </div>
+    );
+  }
+
+  if (requireAuth && !user) return null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {showSidebar && user && (
+        <PremiumSidebar
+          user={user}
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
+      )}
+      <div
+        className={cn(
+          "transition-all duration-300 ease-in-out",
+          showSidebar ? "lg:ml-[264px]" : "ml-0"
+        )}
+      >
+        <PremiumHeader
+          user={user}
+          title={title}
+          subtitle={subtitle}
+          showMobileMenu={showSidebar}
+          onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          isMobileMenuOpen={sidebarOpen}
+        />
+        <main className="pb-20 lg:pb-0 min-h-[calc(100vh-3.5rem)]">
+          {children}
+        </main>
+      </div>
+      {showSidebar && <MobileNav />}
+    </div>
+  );
+}
+`);
+
+console.log('Done! Layout components generated.');

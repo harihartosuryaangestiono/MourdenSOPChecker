@@ -17,7 +17,7 @@ export async function getTodayTasks(shift?: Shift): Promise<DailyTaskInstance[]>
           category:sop_categories(*)
         )
       ),
-      assigned_user:users!assigned_to(id, name, avatar_url),
+      assigned_user:users!daily_task_instances_assigned_to_fkey(id, name, avatar_url),
       submission:task_submissions(*)
     `)
     .eq("date", new Date().toISOString().split("T")[0])
@@ -143,4 +143,73 @@ export async function createSOPTask(
   
   if (error) throw error;
   return data as SOPTask;
+}
+
+export async function updateSOPTemplate(
+  id: string,
+  updates: Partial<SOPTemplate>
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("sop_templates").update(updates).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteSOPTemplate(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("sop_templates").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function generateDailyTasks(): Promise<{ created: number; skipped: number }> {
+  const supabase = createClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  // deadline_time lives on sop_templates, NOT on sop_tasks
+  const { data: templates, error: tErr } = await supabase
+    .from("sop_templates")
+    .select("id, shift, deadline_time, sop_tasks(id, order_index)")
+    .eq("is_active", true);
+
+  if (tErr) throw tErr;
+  if (!templates || templates.length === 0) return { created: 0, skipped: 0 };
+
+  const { data: existing } = await supabase
+    .from("daily_task_instances")
+    .select("sop_task_id")
+    .eq("date", today);
+
+  const existingIds = new Set((existing ?? []).map((e: any) => e.sop_task_id));
+
+  const toInsert: any[] = [];
+  for (const template of templates as any[]) {
+    const deadlineTime: string = template.deadline_time ?? "23:59:00";
+    for (const task of template.sop_tasks ?? []) {
+      if (!existingIds.has(task.id)) {
+        toInsert.push({
+          date: today,
+          shift: template.shift,
+          sop_task_id: task.id,
+          status: "pending",
+          deadline_time: deadlineTime,
+        });
+      }
+    }
+  }
+
+  if (toInsert.length === 0) return { created: 0, skipped: existingIds.size };
+
+  const { error } = await supabase.from("daily_task_instances").insert(toInsert);
+  if (error) throw error;
+
+  return { created: toInsert.length, skipped: existingIds.size };
+}
+
+export async function getSOPCategories() {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("sop_categories")
+    .select("id, name, color, icon")
+    .order("name");
+  if (error) throw error;
+  return data ?? [];
 }

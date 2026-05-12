@@ -382,9 +382,19 @@ export default function StaffDashboard() {
             {filteredTasks.length === 0 ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <ModernEmptyState 
-                  icon={CheckCircle2}
-                  title={searchQuery ? "No matching tasks found" : "You're All Caught Up!"}
-                  description={searchQuery ? "Try adjusting your search or filters." : "There are no tasks remaining in this view. Great job maintaining operational excellence."}
+                  icon={tasks.length === 0 ? ListTodo : CheckCircle2}
+                  title={
+                    searchQuery ? "No matching tasks found" :
+                    tasks.length === 0 ? "No tasks for today yet" :
+                    shiftTasks.length === 0 ? "No tasks for this shift" :
+                    "You're All Caught Up!"
+                  }
+                  description={
+                    searchQuery ? "Try adjusting your search or filters." :
+                    tasks.length === 0 ? "Tasks haven't been generated yet. Ask your admin to generate today's tasks from the dashboard." :
+                    shiftTasks.length === 0 ? "No SOP tasks are assigned to this shift today." :
+                    "All tasks in this view are done. Great work maintaining operational excellence!"
+                  }
                 />
               </motion.div>
             ) : (

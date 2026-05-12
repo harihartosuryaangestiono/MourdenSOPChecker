@@ -1,4 +1,16 @@
-"use client";
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+
+function w(rel, code) {
+  const abs = path.join(root, rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, code, 'utf8');
+  console.log('✓', rel);
+}
+
+// ─── Owner Dashboard ───────────────────────────────────────────────────────────
+w('app/(dashboard)/owner/page.tsx', `"use client";
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -62,11 +74,11 @@ export default function OwnerDashboard() {
 
         const { data: tasks } = await sb
           .from("daily_task_instances")
-          .select(`
+          .select(\`
             id, status, shift, assigned_to,
             assigned_user:users!assigned_to(id, name, role),
             submission:task_submissions(id, submitted_at)
-          `)
+          \`)
           .eq("date", today);
 
         const { data: staffList } = await sb
@@ -328,3 +340,6 @@ export default function OwnerDashboard() {
     </PremiumLayout>
   );
 }
+`);
+
+console.log('Done! Owner dashboard generated.');

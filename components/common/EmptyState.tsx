@@ -1,36 +1,56 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
-  description: string;
+  description?: string;
+  action?: { label: string; onClick: () => void };
   actionLabel?: string;
   onAction?: () => void;
+  className?: string;
+  compact?: boolean;
 }
 
-export function EmptyState({ icon: Icon, title, description, actionLabel, onAction }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action, actionLabel, onAction, className, compact }: EmptyStateProps) {
+  const resolvedAction = action ?? (actionLabel ? { label: actionLabel, onClick: onAction ?? (() => {}) } : undefined);
   return (
-    <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2 bg-card/50">
-      <motion.div 
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-6"
-      >
-        <Icon className="h-10 w-10 text-primary" />
-      </motion.div>
-      <h3 className="text-xl font-bold tracking-tight text-foreground mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-sm mb-6">{description}</p>
-      {actionLabel && onAction && (
-        <Button onClick={onAction} className="rounded-full shadow-lg hover:shadow-primary/25 transition-all">
-          {actionLabel}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "flex flex-col items-center justify-center text-center",
+        compact ? "py-10 px-4" : "py-16 px-6",
+        className
+      )}
+    >
+      <div className={cn(
+        "rounded-2xl bg-secondary/60 flex items-center justify-center mb-4",
+        compact ? "w-12 h-12" : "w-16 h-16"
+      )}>
+        <Icon className={cn("text-muted-foreground", compact ? "w-6 h-6" : "w-8 h-8")} />
+      </div>
+      <h3 className={cn("font-semibold text-foreground mb-1.5", compact ? "text-sm" : "text-base")}>
+        {title}
+      </h3>
+      {description && (
+        <p className={cn("text-muted-foreground max-w-xs mx-auto", compact ? "text-xs" : "text-sm")}>
+          {description}
+        </p>
+      )}
+      {resolvedAction && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={resolvedAction.onClick}
+          className="mt-5 rounded-xl"
+        >
+          {resolvedAction.label}
         </Button>
       )}
-    </Card>
+    </motion.div>
   );
 }

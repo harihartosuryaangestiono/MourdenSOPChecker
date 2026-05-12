@@ -1,4 +1,15 @@
-"use client";
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+function w(rel, code) {
+  const abs = path.join(root, rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, code, 'utf8');
+  console.log('✓', rel);
+}
+
+// ─── Admin Staff Management Page ───────────────────────────────────────────────
+w('app/(dashboard)/admin/staff/page.tsx', `"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -393,3 +404,8 @@ export default function StaffPage() {
     </PremiumLayout>
   );
 }
+`);
+
+// ─── Add "Generate Today" button to admin dashboard ────────────────────────────
+// This patches the existing admin page to add a generate button in the toolbar area
+console.log('Done! Admin staff page generated.');

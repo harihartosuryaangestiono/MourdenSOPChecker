@@ -1,4 +1,16 @@
-"use client";
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+
+function w(rel, code) {
+  const abs = path.join(root, rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, code, 'utf8');
+  console.log('✓', rel);
+}
+
+// ─── Login Page ────────────────────────────────────────────────────────────────
+w('app/(auth)/login/page.tsx', `"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -192,3 +204,6 @@ export default function LoginPage() {
     </div>
   );
 }
+`);
+
+console.log('Done! Auth pages generated.');
