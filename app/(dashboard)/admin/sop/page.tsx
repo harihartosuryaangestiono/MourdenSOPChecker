@@ -60,7 +60,7 @@ export default function SOPPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [shiftFilter, setShiftFilter] = useState<"all" | "opening" | "closing" | "daily">("all");
+  const [shiftFilter, setShiftFilter] = useState<"all" | "opening" | "middle" | "closing" | "daily">("all");
 
   const [showCreate, setShowCreate] = useState(false);
   const [editTarget, setEditTarget] = useState<SOPTemplate | null>(null);
